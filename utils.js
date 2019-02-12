@@ -5,7 +5,6 @@ function findLinks (host, path="/", cb) {
     path
   };
 const req = https.get(options, (res) => {
-  console.log('STATUS: ' + res.statusCode);
   if (+res.statusCode === 200){
   const bodyChunks = [];
   res.on('data', (chunk) => {
@@ -36,7 +35,5 @@ req.on('error', function(e) {
 }
 });
 }
-findLinks('broken-links-api.herokuapp.com', '/',(err, links) => {
-  console.log(links);
-})
+
 module.exports = {findLinks};
