@@ -30,7 +30,10 @@ const req = https.get(options, (res) => {
       console.log(broken.length) 
       console.log(`${host}${link}`);
       console.log(broken.includes(`${link}`))
-      if (!broken.includes(`${link}`) && link.includes('.html') && ) findLinks(host, link, cb)
+      if (!broken.includes(link) && link.includes('.html') && !notBroken.includes(link)) {
+        notBroken.push(link);
+        findLinks(host, link, cb);
+        }
       });
   })
   } else {
