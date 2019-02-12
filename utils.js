@@ -13,12 +13,17 @@ const req = https.get(options, (res) => {
   }).on('end', () => {
     const body = Buffer.concat(bodyChunks);
     const brokenLinks = []
+    const workingLinks = [];
     const links = body.toString().match(/href="\S*"/gi).map(url => url.slice(6, -1));
     let i = 0;
     links.forEach((link, index)=> {
       const req = https.get({host, path: link}, res => {
         i++
         if (res.statusCode === 404) brokenLinks.push(link);
+        else if (res.statusCode === '200') {
+          workingLinks.push(link);
+          // recursive check
+        }
         if (i === links.length) {
           cb(null, brokenLinks)
           };
