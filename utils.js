@@ -1,13 +1,4 @@
 const https = require('https');
-const findBroken = (host) => {
-  const broken = [];
-  const notBroken = []
-  findLinks(host, '/', (err, brokenLink, notBrokenLink) => {
-    console.log(broken.sort());
-    if (err) throw err;
-    else if (brokenLink) {(broken.push(brokenLink))}
-    else if (notBrokenLink) {notBroken.push(notBrokenLink)}
-  });
 function findLinks (host, path="/", cb) {
   const options = {
     host,
@@ -15,34 +6,27 @@ function findLinks (host, path="/", cb) {
   };
 const req = https.get(options, (res) => {
   console.log('STATUS: ' + res.statusCode);
-  if (+res.statusCode === 404) cb(null, (`${path}`))// broken link
-  else if (+res.statusCode === 200){
-  // Buffer the body entirely for processing as a whole.
+  if (+res.statusCode === 200){
   const bodyChunks = [];
   res.on('data', (chunk) => {
     bodyChunks.push(chunk);
   }).on('end', () => {
     const body = Buffer.concat(bodyChunks);
-    // console.log(body.toString()); // whole body
-    // links
+    const outerLinks = []
     const links = body.toString().match(/href="\S*"/gi).map(url => url.slice(6, -1));
-    links.forEach(link => {
-      console.log(broken.length) 
-      console.log(`${host}${link}`);
-      console.log(broken.includes(`${link}`))
-      if (!broken.includes(link) && link.includes('.html') && !notBroken.includes(link)) {
-        notBroken.push(link);
-        findLinks(host, link, cb);
-        }
-      });
+    links.forEach(async (link, index)=> {
+      const req = https.get({host, path: link}, res => {
+        if (res.statusCode === 404) outerLinks.push(link);
+        if (index === links.length -1) cb(null, outerLinks);
+      })
   })
-  } else {
-    console.log('different code');
-  }
+  });
 req.on('error', function(e) {
   console.log('ERROR: ' + e.message);
 });
-})
 }
+});
 }
-findBroken('broken-links-api.herokuapp.com');
+findLinks('broken-links-api.herokuapp.com', '/', (err, links) => {
+  console.log(links);
+});
