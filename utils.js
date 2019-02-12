@@ -12,12 +12,16 @@ const req = https.get(options, (res) => {
     bodyChunks.push(chunk);
   }).on('end', () => {
     const body = Buffer.concat(bodyChunks);
-    const outerLinks = []
+    const brokenLinks = []
     const links = body.toString().match(/href="\S*"/gi).map(url => url.slice(6, -1));
-    links.forEach(async (link, index)=> {
+    let i = 0;
+    links.forEach((link, index)=> {
       const req = https.get({host, path: link}, res => {
-        if (res.statusCode === 404) outerLinks.push(link);
-        if (index === links.length -1) cb(null, outerLinks);
+        i++
+        if (res.statusCode === 404) brokenLinks.push(link);
+        if (i === links.length) {
+          cb(null, brokenLinks)
+          };
       })
   })
   });
@@ -27,6 +31,7 @@ req.on('error', function(e) {
 }
 });
 }
-findLinks('broken-links-api.herokuapp.com', '/', (err, links) => {
+findLinks('broken-links-api.herokuapp.com', '/',(err, links) => {
   console.log(links);
-});
+})
+module.exports = {findLinks};

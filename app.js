@@ -1,5 +1,5 @@
 const http = require("http");
-
+const { findLinks } = require('./utils.js')
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/json");
@@ -17,10 +17,14 @@ const server = http.createServer((req, res) => {
       })
       .on("end", () => {
         body = Buffer.concat(body).toString();
-        console.log(JSON.parse(body));
-        res.write("POST REQUESTED");
-        // findBrokenLinks(body.url)
+        const {url} = (JSON.parse(body));
+        findLinks(url, '/', (err, links) => {
+          console.log(links.length);
+          res.write(JSON.stringify({links}));
         res.end();
+        });
+        // res.write("POST REQUESTED");
+        // findBrokenLinks(body.url)
       });
   }
 });
